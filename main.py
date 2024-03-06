@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 from googletrans import Translator, LANGUAGES
 
-BOT_TOKEN = '7021310891:AAFCULpbm3uN39sXW5km20X-91T4ycOf3kg'
+BOT_TOKEN = 'Token'
 bot = telebot.TeleBot(BOT_TOKEN)
 translator = Translator()
 facts = [
