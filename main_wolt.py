@@ -114,7 +114,6 @@ async def process_read(callback_query: CallbackQuery):
         group_chat_id = '@ushdhdhdisj52'  # Замените на вашу группу
         await bot.send_message(group_chat_id, message_text)
 
-    # Отправляем пользователю подтверждение
     await bot.send_message(user_id, "Managers got your information!\n\nContact one of them: @wolt_ac, @johnywellman")
     await callback_query.answer()
 
