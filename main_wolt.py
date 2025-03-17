@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
@@ -18,19 +18,16 @@ async def start_handler(message: Message):
     ])
     await message.answer(f"<b>Hello, {message.from_user.first_name}!</b>\nI am bot, who will help you with getting an account. Before you contact our manager, let's answer some questions.\nAre you ready to start?\n\n<i>(Click \"Start\" below this message)</i>", parse_mode="HTML", reply_markup=keyboard)
 
-
 @dp.callback_query(lambda c: c.data == "start")
 async def process_start(callback_query: CallbackQuery):
     user_data[callback_query.from_user.id] = {}
     await bot.send_message(callback_query.from_user.id, "What is your full name?")
     await callback_query.answer()
 
-
 @dp.message(lambda message: message.from_user.id in user_data and "name" not in user_data[message.from_user.id])
 async def get_name(message: Message):
     user_data[message.from_user.id]["name"] = message.text
     await message.answer("In what city do you want an account?\n<i>(You can choose several)</i>", parse_mode="HTML")
-
 
 @dp.message(lambda message: message.from_user.id in user_data and "city" not in user_data[message.from_user.id])
 async def get_city(message: Message):
@@ -42,17 +39,20 @@ async def get_city(message: Message):
     ])
     await message.answer("Account with what type of transport do you need?", reply_markup=keyboard)
 
-
 @dp.callback_query(lambda c: c.data in ["transport_car", "transport_bike", "transport_both"])
 async def process_transport(callback_query: CallbackQuery):
     user_data[callback_query.from_user.id]["transport"] = callback_query.data
     await bot.send_message(callback_query.from_user.id, "What country are you from?\n(Before you came to Finland)")
     await callback_query.answer()
 
-
 @dp.message(lambda message: message.from_user.id in user_data and "country" not in user_data[message.from_user.id])
 async def get_country(message: Message):
     user_data[message.from_user.id]["country"] = message.text
+    await message.answer("What is your phone number?")
+
+@dp.message(lambda message: message.from_user.id in user_data and "phone" not in user_data[message.from_user.id])
+async def get_phone(message: Message):
+    user_data[message.from_user.id]["phone"] = message.text
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Yes", callback_data="business_yes")],
         [InlineKeyboardButton(text="❌ No", callback_data="business_no")],
@@ -63,10 +63,38 @@ async def get_country(message: Message):
 
 @dp.callback_query(lambda c: c.data == "business_unknown")
 async def process_business_unknown(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    if user_id not in user_data:
+        user_data[user_id] = {}
+    user_data[user_id]["BID"] = "🤷‍♂️"
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="I've checked", callback_data="read_instructions")]
     ])
     await bot.send_message(callback_query.from_user.id, "Please, check Truster.fi for getting info", reply_markup=keyboard)
+    await callback_query.answer()
+
+@dp.callback_query(lambda c: c.data == "business_yes")
+async def process_business_yes(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    if user_id not in user_data:
+        user_data[user_id] = {}
+    user_data[user_id]["BID"] = "✅"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Yes, sure!", callback_data="read_instructions")]
+    ])
+    await bot.send_message(callback_query.from_user.id, "That's good! Are you ready to read an instruction?", reply_markup=keyboard)
+    await callback_query.answer()
+
+@dp.callback_query(lambda c: c.data == "business_no")
+async def process_business_no(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    if user_id not in user_data:
+        user_data[user_id] = {}
+    user_data[user_id]["BID"] = "❌"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Okay, I understand", callback_data="read_instructions")]
+    ])
+    await bot.send_message(callback_query.from_user.id, "We would recommend you to get Business ID, otherwise you will not be able to work in Foodora (only in Wolt).", reply_markup=keyboard)
     await callback_query.answer()
 
 @dp.callback_query(lambda c: c.data == "read_instructions")
@@ -96,10 +124,14 @@ async def process_read(callback_query: CallbackQuery):
         city = data.get("city", "Didn't write")
         transport = data.get("transport", "Didn't write").replace("transport_", "").capitalize()
         country = data.get("country", "Didn't write")
+        phone = data.get("phone", "Didn't provide")
+        b_id=data.get("BID", "Didn't provide")
         message_text = (f"Name: {name}\n"
                         f"City: {city}\n"
                         f"Vehicle Type: {transport}\n"
+                        f"Business ID: {b_id}\n"
                         f"Country: {country}\n"
+                        f"Phone: {phone}\n"
                         f"Telegram ID: @{username if username else 'X'}")
 
         group_chat_id = '@ushdhdhdisj52'
