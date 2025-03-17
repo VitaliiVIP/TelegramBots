@@ -93,7 +93,7 @@ async def process_read(callback_query: CallbackQuery):
         group_chat_id = '@ushdhdhdisj52'
         await bot.send_message(group_chat_id, message_text)
 
-    await bot.send_message(user_id, "Managers got your information!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n(Click on one of them for open chat)")
+    await bot.send_message(user_id, "Managers got your information!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)<i>")
     await callback_query.answer()
 
 async def main():
