@@ -56,7 +56,7 @@ async def get_country(message: Message):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Yes", callback_data="business_yes")],
         [InlineKeyboardButton(text="❌ No", callback_data="business_no")],
-        [InlineKeyboardButton(text="🤷‍♂️ I don't know what is it", callback_data="business_unknown")]
+        [InlineKeyboardButton(text="🤷‍♂️ I don't know whatis it", callback_data="business_unknown")]
     ])
     await message.answer("Do you have Business ID?", reply_markup=keyboard)
 
