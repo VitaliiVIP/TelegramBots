@@ -22,7 +22,7 @@ async def start_handler(message: Message):
 @dp.callback_query(lambda c: c.data == "start")
 async def process_start(callback_query: CallbackQuery):
     user_data[callback_query.from_user.id] = {}
-    await bot.send_message(callback_query.from_user.id, "What is your name?")
+    await bot.send_message(callback_query.from_user.id, "What is your full name?")
     await callback_query.answer()
 
 
@@ -46,7 +46,7 @@ async def get_city(message: Message):
 @dp.callback_query(lambda c: c.data in ["transport_car", "transport_bike", "transport_both"])
 async def process_transport(callback_query: CallbackQuery):
     user_data[callback_query.from_user.id]["transport"] = callback_query.data
-    await bot.send_message(callback_query.from_user.id, "Where are you from?\n(Before you came to Finland)")
+    await bot.send_message(callback_query.from_user.id, "What country are you from?\n(Before you came to Finland)")
     await callback_query.answer()
 
 
@@ -64,14 +64,27 @@ async def get_country(message: Message):
 @dp.callback_query(lambda c: c.data in ["business_yes", "business_no", "business_unknown"])
 async def process_business_id(callback_query: CallbackQuery):
     if callback_query.data == "business_unknown":
-        await bot.send_message(callback_query.from_user.id, "Please, check Truster.fi for getting info")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="I've checked", callback_data="read_instructions")]
+        ])
+        await bot.send_message(callback_query.from_user.id, "Please, check Truster.fi for getting info", reply_markup=keyboard)
+        return  # Important to prevent further code execution after this message
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="I've read", callback_data="read_instructions")]
-    ])
-    await bot.send_message(callback_query.from_user.id, "<b>              ❗       INSTRUCTION       ❗\n\nREAD IT CAREFULLY!</b>\n\nSince we started our group we connected 12 accounts and now our group is growing, and we decided to make an Instruction for new people:\n\n<b>1.</b> We are the group that connects people who are looking for the account with owners.\n\n<b>2.</b> We take fixable amount from each account every month. Depends on the location of the account we take 50-99 euros (sum is already included in written cost).\n\n<b>3.</b> Since we start our group few people decided to trick us and not pay any money after getting the account. This people lost access to the accounts, because we contacted owners. So we decided to take 0.01€ for getting all your personal information (When you send it in Bank app or MobilePay, we see your account's details).\n\n<b>4.</b> In the end of the first workday you must pay 20€ as a guarantee, that you will pay to us further.\n\nWe hoping on nice partnership with you 😊",
-                           parse_mode='HTML', reply_markup=keyboard)
-    await callback_query.answer()
+    # If the user clicks "I've checked", send them the instructions.
+    if callback_query.data == "read_instructions":
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="I've read", callback_data="confirm_read")]
+        ])
+        message_text = ("<b>❗ INSTRUCTION ❗</b>\n\n"
+                        "READ IT CAREFULLY!\n\n"
+                        "Since we started our group we connected 12 accounts and now our group is growing, and we decided to make an Instruction for new people:\n\n"
+                        "<b>1.</b> We are the group that connects people who are looking for the account with owners.\n\n"
+                        "<b>2.</b> We take fixable amount from each account every month. Depends on the location of the account we take 50-99 euros (sum is already included in written cost).\n\n"
+                        "<b>3.</b> Since we start our group few people decided to trick us and not pay any money after getting the account. This people lost access to the accounts, because we contacted owners. So we decided to take 0.01€ for getting all your personal information (When you send it in Bank app or MobilePay, we see your account's details).\n\n"
+                        "<b>4.</b> In the end of the first workday you must pay 20€ as a guarantee, that you will pay to us further.\n\n"
+                        "We hoping on nice partnership with you 😊")
+        await bot.send_message(callback_query.from_user.id, message_text, parse_mode='HTML', reply_markup=keyboard)
+
 
 
 @dp.callback_query(lambda c: c.data == "read_instructions")
@@ -93,7 +106,7 @@ async def process_read(callback_query: CallbackQuery):
         group_chat_id = '@ushdhdhdisj52'
         await bot.send_message(group_chat_id, message_text)
 
-    await bot.send_message(user_id, "Managers got your information!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)<i>")
+    await bot.send_message(user_id, "Managers got your information!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>", parse_mode="HTML")
     await callback_query.answer()
 
 async def main():
