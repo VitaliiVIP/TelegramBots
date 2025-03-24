@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 
-TOKEN = "8166513060:AAFZDAy1MBeYgkDpQVU56zEsmdN01ooft1k"
+TOKEN = "7911405482:AAFpCqyo8pWjCuuiqjcmBjGZkRJYQox-DRA"
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -27,7 +27,21 @@ async def process_start(callback_query: CallbackQuery):
 @dp.message(lambda message: message.from_user.id in user_data and "name" not in user_data[message.from_user.id])
 async def get_name(message: Message):
     user_data[message.from_user.id]["name"] = message.text
-    await message.answer("In what city do you want an account?\n<i>(You can choose several)</i>", parse_mode="HTML")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Finland", callback_data="country_finland")],
+        [InlineKeyboardButton(text="Great Britain", callback_data="country_gb")]
+    ])
+    await message.answer("In what country do you want an account?", reply_markup=keyboard)
+
+@dp.callback_query(lambda c: c.data in ["country_finland", "country_gb"])
+async def process_country(callback_query: CallbackQuery):
+    countries = {
+        "country_finland": "Finland",
+        "country_gb": "United Kingdom"
+    }
+    user_data[callback_query.from_user.id]["country_current"] = countries[callback_query.data]
+    await bot.send_message(callback_query.from_user.id, "In what city do you want an account?\n<i>(You can choose several)</i>", parse_mode="HTML")
+    await callback_query.answer()
 
 @dp.message(lambda message: message.from_user.id in user_data and "city" not in user_data[message.from_user.id])
 async def get_city(message: Message):
@@ -42,7 +56,7 @@ async def get_city(message: Message):
 @dp.callback_query(lambda c: c.data in ["transport_car", "transport_bike", "transport_both"])
 async def process_transport(callback_query: CallbackQuery):
     user_data[callback_query.from_user.id]["transport"] = callback_query.data
-    await bot.send_message(callback_query.from_user.id, "What country are you from?\n(Before you came to Finland)")
+    await bot.send_message(callback_query.from_user.id, "What country are you from?\n<i>(Before you came to current place)</i>")
     await callback_query.answer()
 
 @dp.message(lambda message: message.from_user.id in user_data and "country" not in user_data[message.from_user.id])
@@ -56,10 +70,22 @@ async def get_phone(message: Message):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Yes", callback_data="business_yes")],
         [InlineKeyboardButton(text="❌ No", callback_data="business_no")],
-        [InlineKeyboardButton(text="🤷‍♂️ I don't know whatis it", callback_data="business_unknown")]
+        [InlineKeyboardButton(text="🤷‍♂️ I don't know what is it", callback_data="business_unknown")],
+        [InlineKeyboardButton(text="️🚫 I am not from Finland", callback_data="business_not_need")]
     ])
-    await message.answer("Do you have Business ID?", reply_markup=keyboard)
+    await message.answer("Do you have Business ID?\n\n<i>(Question is only for clients from Finland)</i>", parse_mode="HTML", reply_markup=keyboard)
 
+@dp.callback_query(lambda c: c.data == "business_not_need")
+async def process_business_yes(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    if user_id not in user_data:
+        user_data[user_id] = {}
+    user_data[user_id]["BID"] = "🇬🇧"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Yes, sure!", callback_data="read_instructions")]
+    ])
+    await bot.send_message(callback_query.from_user.id, "Okay. Are you ready to read an instruction?", reply_markup=keyboard)
+    await callback_query.answer()
 
 @dp.callback_query(lambda c: c.data == "business_unknown")
 async def process_business_unknown(callback_query: CallbackQuery):
@@ -126,19 +152,49 @@ async def process_read(callback_query: CallbackQuery):
         country = data.get("country", "Didn't write")
         phone = data.get("phone", "Didn't provide")
         b_id=data.get("BID", "Didn't provide")
-        message_text = (f"Name: {name}\n"
-                        f"City: {city}\n"
-                        f"Vehicle Type: {transport}\n"
-                        f"Business ID: {b_id}\n"
-                        f"Country: {country}\n"
-                        f"Phone: {phone}\n"
-                        f"Telegram ID: @{username if username else 'X'}")
+        ac_in_country=data.get("country_current", "Didn't provide")
+        if b_id=="🇬🇧":
+            message_text = (f"Name: {name}\n"
+                            f"Country: {ac_in_country}\n"
+                            f"City: {city}\n"
+                            f"Vehicle Type: {transport}\n"
+                            f"From: {country}\n"
+                            f"Phone: {phone}\n"
+                            f"Telegram ID: @{username if username else 'X'}\n")
+        else:
+            message_text = (f"Name: {name}\n"
+                            f"Country: {ac_in_country}\n"
+                            f"City: {city}\n"
+                            f"Vehicle Type: {transport}\n"
+                            f"Business ID: {b_id}\n"
+                            f"From: {country}\n"
+                            f"Phone: {phone}\n"
+                            f"Telegram ID: @{username if username else 'X'}\n")
 
         group_chat_id = '@ushdhdhdisj52'
         await bot.send_message(group_chat_id, message_text)
-
-    await bot.send_message(user_id, "Managers got your information!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>", parse_mode="HTML")
-    await callback_query.answer()
+        if b_id=="🇬🇧":
+            await bot.send_message(user_id, "<b>Check your application:</b>\n\n"
+                                f"<b>Name:</b> {name}\n"
+                                f"<b>Country:</b> {ac_in_country}\n"
+                                f"<b>City:</b> {city}\n"
+                                f"<b>Vehicle Type:</b> {transport}\n"
+                                f"<b>From:</b> {country}\n"
+                                f"<b>Phone:</b> {phone}\n"
+                                "<b>\n\nManagers got your information!\n\nContact one of them:</b>\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>", parse_mode="HTML")
+            await callback_query.answer()
+        else:
+            await bot.send_message(user_id, "<b>Check your application:\n</b>\n"
+                                            f"<b>Name:</b> {name}\n"
+                                            f"<b>Country:</b> {ac_in_country}\n"
+                                            f"<b>City:</b> {city}\n"
+                                            f"<b>Vehicle Type:</b> {transport}\n"
+                                            f"<b>Business ID:</b> {b_id}\n"
+                                            f"<b>From:</b> {country}\n"
+                                            f"<b>Phone:</b> {phone}\n"
+                                            "<b>\n\nManagers ready to connect with you!\n\nContact one of them and share this message with him:</b>\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>",
+                                   parse_mode="HTML")
+            await callback_query.answer()
 
 async def main():
     await dp.start_polling(bot)
