@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 
-TOKEN = ""
+TOKEN = "7911405482:AAFpCqyo8pWjCuuiqjcmBjGZkRJYQox-DRA"
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -223,7 +223,7 @@ async def process_read(callback_query: CallbackQuery):
                                    f"<b>Vehicle Type:</b> {transport}\n"
                                    f"<b>From:</b> {country}\n"
                                    f"<b>Phone:</b> {phone}\n\n"
-                                   "Managers are ready to chat with you!\n\nContact one of them and send this message to him:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>",
+                                   "❗ <b>Send this message to the manager</b> ❗\n\nManagers are ready to chat with you!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>",
                                    parse_mode="HTML")
         else:
             message_text = (f"Name: {name}\n"
@@ -246,7 +246,7 @@ async def process_read(callback_query: CallbackQuery):
                                    f"<b>Business ID:</b> {b_id}\n"
                                    f"<b>From:</b> {country}\n"
                                    f"<b>Phone:</b> {phone}\n\n"
-                                   "Managers are ready to chat with you!\n\nContact one of them and send this message to him:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>",
+                                   "❗ <b>Send this message to the manager</b> ❗\n\nManagers are ready to chat with you!\n\nContact one of them:\n@wolt_ac\n@johnywellman\n\n<i>(Click on one of them for open chat)</i>",
                                    parse_mode="HTML")
 
     await callback_query.answer()
