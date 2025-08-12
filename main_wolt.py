@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 
-TOKEN = "8166513060:AAFZDAy1MBeYgkDpQVU56zEsmdN01ooft1k"
+TOKEN = ""
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
